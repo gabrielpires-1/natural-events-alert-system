@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 
+	producer "github.com/gabrielpires-1/natural-events-alert-system/producer/main"
 	"github.com/gabrielpires-1/natural-events-alert-system/pubsub"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -29,8 +30,8 @@ func Run() {
 	fmt.Println("You are the log. Be ready to receive messages.")
 	queue := ""
 	exchange := "alert_topic"
-	pubsub.SubscribeJSON(connection, exchange, queue, "sensor.*", pubsub.SimpleQueueTransient, func(temp int) pubsub.AckType {
-		fmt.Printf(">Message: %d\n", temp)
+	pubsub.SubscribeJSON(connection, exchange, queue, "sensor.#", pubsub.SimpleQueueTransient, func(msg producer.Msg) pubsub.AckType {
+		fmt.Printf(">Message: %v\n", msg)
 		return pubsub.Ack
 	})
 	for {
