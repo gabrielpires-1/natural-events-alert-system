@@ -15,9 +15,8 @@ const rainKey = "rain"
 const sismicKey = "sismic"
 const allKey = "*"
 
-func Run() {
+func Run(string_connect string) {
 	fmt.Println("Starting system server...")
-	string_connect := "amqp://guest:guest@localhost:5672/"
 	connection, err := amqp.Dial(string_connect)
 	if err != nil {
 		fmt.Println("Failed to connect to RabbitMQ")
@@ -54,6 +53,11 @@ func Run() {
 		pubsub.SubscribeJSON(connection, exchange, queue, "sensor."+location+"."+tempKey, pubsub.SimpleQueueTransient, func(msg producer.Msg) pubsub.AckType {
 			fmt.Printf("--------------------------------------------------\n")
 			fmt.Printf("Time: %s\nLocation: %s\nTopic: %s\nValue: %d\n", msg.Time, msg.Location, msg.Topic, msg.Value)
+			if msg.Value > 40 {
+				fmt.Printf("ALERT: Temperature above 40 degrees\n")
+			} else if msg.Value < 0 {
+				fmt.Printf("ALERT: Temperature below 10 degrees\n")
+			}
 			fmt.Printf("--------------------------------------------------\n")
 			return pubsub.Ack
 		})
@@ -64,6 +68,11 @@ func Run() {
 		pubsub.SubscribeJSON(connection, exchange, queue, "sensor."+location+"."+pressureKey, pubsub.SimpleQueueTransient, func(msg producer.Msg) pubsub.AckType {
 			fmt.Printf("--------------------------------------------------\n")
 			fmt.Printf("Time: %s\nLocation: %s\nTopic: %s\nValue: %d\n", msg.Time, msg.Location, msg.Topic, msg.Value)
+			if msg.Value > 1013 {
+				fmt.Printf("ALERT: Pressure above 1013 hPa\n")
+			} else if msg.Value < 1000 {
+				fmt.Printf("ALERT: Pressure below 1000 hPa\n")
+			}
 			fmt.Printf("--------------------------------------------------\n")
 			return pubsub.Ack
 		})
@@ -74,6 +83,9 @@ func Run() {
 		pubsub.SubscribeJSON(connection, exchange, queue, "sensor."+location+"."+rainKey, pubsub.SimpleQueueTransient, func(msg producer.Msg) pubsub.AckType {
 			fmt.Printf("--------------------------------------------------\n")
 			fmt.Printf("Time: %s\nLocation: %s\nTopic: %s\nValue: %d\n", msg.Time, msg.Location, msg.Topic, msg.Value)
+			if msg.Value > 50 {
+				fmt.Printf("ALERT: Rain above 50 mm\n")
+			}
 			fmt.Printf("--------------------------------------------------\n")
 			return pubsub.Ack
 		})
@@ -84,6 +96,9 @@ func Run() {
 		pubsub.SubscribeJSON(connection, exchange, queue, "sensor."+location+"."+sismicKey, pubsub.SimpleQueueTransient, func(msg producer.Msg) pubsub.AckType {
 			fmt.Printf("--------------------------------------------------\n")
 			fmt.Printf("Time: %s\nLocation: %s\nTopic: %s\nValue: %d\n", msg.Time, msg.Location, msg.Topic, msg.Value)
+			if msg.Value > 5 {
+				fmt.Printf("ALERT: Sismic activity above 5\n")
+			}
 			fmt.Printf("--------------------------------------------------\n")
 			return pubsub.Ack
 		})
@@ -94,6 +109,27 @@ func Run() {
 		pubsub.SubscribeJSON(connection, exchange, queue, "sensor."+location+"."+allKey, pubsub.SimpleQueueTransient, func(msg producer.Msg) pubsub.AckType {
 			fmt.Printf("--------------------------------------------------\n")
 			fmt.Printf("Time: %s\nLocation: %s\nTopic: %s\nValue: %d\n", msg.Time, msg.Location, msg.Topic, msg.Value)
+			if msg.Topic == tempKey {
+				if msg.Value > 40 {
+					fmt.Printf("ALERT: Temperature above 40 degrees\n")
+				} else if msg.Value < 0 {
+					fmt.Printf("ALERT: Temperature below 10 degrees\n")
+				}
+			} else if msg.Topic == pressureKey {
+				if msg.Value > 1013 {
+					fmt.Printf("ALERT: Pressure above 1013 hPa\n")
+				} else if msg.Value < 1000 {
+					fmt.Printf("ALERT: Pressure below 1000 hPa\n")
+				}
+			} else if msg.Topic == rainKey {
+				if msg.Value > 50 {
+					fmt.Printf("ALERT: Rain above 50 mm\n")
+				}
+			} else if msg.Topic == sismicKey {
+				if msg.Value > 5 {
+					fmt.Printf("ALERT: Sismic activity above 5\n")
+				}
+			}
 			fmt.Printf("--------------------------------------------------\n")
 			return pubsub.Ack
 		})

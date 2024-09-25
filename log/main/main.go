@@ -8,9 +8,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func Run() {
+func Run(string_connect string) {
 	fmt.Println("Starting system server...")
-	string_connect := "amqp://guest:guest@localhost:5672/"
 	connection, err := amqp.Dial(string_connect)
 	if err != nil {
 		fmt.Println("Failed to connect to RabbitMQ")
