@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-
 	producer "github.com/gabrielpires-1/natural-events-alert-system/producer/main"
 	"github.com/gabrielpires-1/natural-events-alert-system/pubsub"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -10,6 +9,7 @@ import (
 
 func Run(string_connect string) {
 	fmt.Println("Starting system server...")
+
 	connection, err := amqp.Dial(string_connect)
 	if err != nil {
 		fmt.Println("Failed to connect to RabbitMQ")
@@ -19,20 +19,23 @@ func Run(string_connect string) {
 
 	fmt.Println("Connected to RabbitMQ")
 
-	publishCh, err := connection.Channel()
+	exchange := "alert_topic"
+	queueName := "log_queue"
+	routingKey := "sensor.#"
+
+	publishCh, queue, err := pubsub.DeclareAndBind(connection, exchange, queueName, routingKey, pubsub.SimpleQueueDurable)
 	if err != nil {
-		fmt.Println("Failed to open a channel")
+		fmt.Println("Failed to declare and bind queue")
 		panic(err)
 	}
 	defer publishCh.Close()
 
-	fmt.Println("You are the log. Be ready to receive messages.")
-	queue := ""
-	exchange := "alert_topic"
-	pubsub.SubscribeJSON(connection, exchange, queue, "sensor.#", pubsub.SimpleQueueTransient, func(msg producer.Msg) pubsub.AckType {
+	fmt.Printf("Queue %s is ready to receive messages\n", queue.Name)
+
+	pubsub.SubscribeJSON(connection, exchange, queue.Name, routingKey, pubsub.SimpleQueueDurable, func(msg producer.Msg) pubsub.AckType {
 		fmt.Printf(">Message: %v\n", msg)
 		return pubsub.Ack
 	})
-	for {
-	}
+
+	select {}
 }
