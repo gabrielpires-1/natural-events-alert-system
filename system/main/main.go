@@ -6,16 +6,21 @@ import (
 	consumer "github.com/gabrielpires-1/natural-events-alert-system/consumer/main"
 	log "github.com/gabrielpires-1/natural-events-alert-system/log/main"
 	producer "github.com/gabrielpires-1/natural-events-alert-system/producer/main"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Por favor, forneça o link como argumento.")
-		fmt.Println("Exemplo: go run main.go amqps://seu-link-aqui")
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Erro ao carregar arquivo .env")
 		os.Exit(1)
 	}
 
-	link := os.Args[1]
+	link := os.Getenv("AMQP_CONNECTION")
+	if link == "" {
+		fmt.Println("A variável AMQP_LINK não está definida no .env")
+		os.Exit(1)
+	}
 
 	fmt.Println("Welcome to the NEAS, the Natural-Events Alert System! Choose an option:")
 	fmt.Println("1. Enter as producer")
